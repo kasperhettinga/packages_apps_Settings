@@ -1107,4 +1107,8 @@
     <!-- Network activity arrows -->
     <string name="show_network_activity">Стрелки сетевой активности</string>
     <string name="show_network_activity_summary">Показывать стрелки на значках сети при сетевой активности</string>
+
+    <!-- Network speed -->
+    <string name="show_network_speed">Индикатор скорости сети</string>
+    <string name="show_network_speed_summary">Показывать скорость сети в строке состояния</string>
 </resources>

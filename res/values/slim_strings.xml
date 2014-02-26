@@ -1295,4 +1295,9 @@ two in order to insert additional control points. \'Remove\' deletes the selecte
     <!-- Network activity arrows -->
     <string name="show_network_activity">Network activity arrows</string>
     <string name="show_network_activity_summary">Show network activity arrows on network icons</string>
+
+    <!-- Network speed -->
+    <string name="show_network_speed">Network speed indicator</string>
+    <string name="show_network_speed_summary">Show network speed in statusbar</string>
+
 </resources>
