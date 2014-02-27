@@ -1291,4 +1291,8 @@ two in order to insert additional control points. \'Remove\' deletes the selecte
     <string name="lockscreen_notifications_type">Notification types to display</string>
     <string name="lockscreen_notifications_excluded_apps_title">Excluded Applications</string>
     <string name="lockscreen_notifications_excluded_apps_summary">Excluded applications will not show notifications on lockscreen</string>
+
+    <!-- Network activity arrows -->
+    <string name="show_network_activity">Network activity arrows</string>
+    <string name="show_network_activity_summary">Show network activity arrows on network icons</string>
 </resources>

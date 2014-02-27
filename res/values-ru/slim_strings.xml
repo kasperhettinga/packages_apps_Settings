@@ -1103,4 +1103,8 @@
 
     <!-- Device specific settings -->
     <string name="screen_off_gesture_settings_title">Жесты на выключенном экране</string>
+
+    <!-- Network activity arrows -->
+    <string name="show_network_activity">Стрелки сетевой активности</string>
+    <string name="show_network_activity_summary">Показывать стрелки на значках сети при сетевой активности</string>
 </resources>

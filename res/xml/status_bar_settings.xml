@@ -40,6 +40,12 @@
             android:summary="@string/status_bar_toggle_brightness_summary"
             android:defaultValue="false" />
 
+        <CheckBoxPreference
+            android:key="network_activity_arrows"
+            android:title="@string/show_network_activity"
+            android:summary="@string/show_network_activity_summary"
+            android:defaultValue="false" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
