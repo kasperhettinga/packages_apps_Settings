@@ -26,9 +26,12 @@ import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+<<<<<<< HEAD
+import android.content.SharedPreferences;
+=======
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
@@ -87,15 +90,28 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String CATEGORY_LIGHTS = "lights_prefs";
     private static final String KEY_NOTIFICATION_PULSE = "notification_pulse";
     private static final String KEY_BATTERY_LIGHT = "battery_light";
+<<<<<<< HEAD
     private static final String KEY_WAKE_WHEN_PLUGGED_OR_UNPLUGGED = "wake_when_plugged_or_unplugged";
     private static final String KEY_SCREEN_ANIMATION_OFF = "screen_off_animation";
     private static final String KEY_SCREEN_ANIMATION_STYLE = "screen_animation_style";
     private static final String KEY_DISPLAY_COLOR = "color_calibration";
     private static final String KEY_DISPLAY_GAMMA = "gamma_tuning";
     private static final String KEY_SCREEN_COLOR_SETTINGS = "screencolor_settings";
+    private static final String KEY_SMART_COVER = "smart_cover";
+=======
+    private static final String KEY_SCREEN_SAVER = "screensaver";
+    private static final String KEY_VOLUME_WAKE = "pref_volume_wake";
+    private static final String KEY_ANIMATION_OPTIONS = "category_animation_options";
+    private static final String KEY_LISTVIEW_ANIMATION = "listview_animation";
+    private static final String KEY_LISTVIEW_INTERPOLATOR = "listview_interpolator";
+    private static final String KEY_POWER_CRT_MODE = "system_power_crt_mode";
+    private static final String KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED = "wakeup_when_plugged_unplugged";
+    private static final String KEY_WAKEUP_CATEGORY = "category_wakeup_options";
+    private static final String KEY_SCREEN_OFF_GESTURE_SETTINGS = "screen_off_gesture_settings";
     private static final String KEY_PEEK = "notification_peek";
 
     private static final String PEEK_APPLICATION = "com.jedga.peek";
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
 
     private static final int DLG_GLOBAL_CHANGE_WARNING = 1;
 
@@ -106,23 +122,34 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 
     private PreferenceScreen mNotificationPulse;
     private PreferenceScreen mBatteryPulse;
+<<<<<<< HEAD
     private PreferenceScreen mDisplayRotationPreference;
     private PreferenceScreen mScreenColorSettings;
+=======
+    private CheckBoxPreference mVolumeWake;
+    private ListPreference mCrtMode;
+    private ListPreference mListViewAnimation;
+    private ListPreference mListViewInterpolator;
+    private CheckBoxPreference mWakeUpWhenPluggedOrUnplugged;
+    private PreferenceCategory mWakeUpOptions;
     private CheckBoxPreference mNotificationPeek;
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
 
     private final Configuration mCurConfig = new Configuration();
 
     private ListPreference mScreenTimeoutPreference;
     private Preference mScreenSaverPreference;
 
+<<<<<<< HEAD
     private CheckBoxPreference mAdaptiveBacklight;
     private SystemSettingCheckBoxPreference mScreenOffAnimation;
     private CheckBoxPreference mSunlightEnhancement;
     private CheckBoxPreference mColorEnhancement;
     private CheckBoxPreference mTapToWake;
-
+=======
     private PackageStatusReceiver mPackageStatusReceiver;
     private IntentFilter mIntentFilter;
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
 
     private ContentObserver mAccelerometerRotationObserver =
             new ContentObserver(new Handler()) {
@@ -132,6 +159,15 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         }
     };
 
+<<<<<<< HEAD
+    private final RotationPolicy.RotationPolicyListener mRotationPolicyListener =
+            new RotationPolicy.RotationPolicyListener() {
+        @Override
+        public void onChange() {
+            updateDisplayRotationPreferenceDescription();
+        }
+    };
+=======
     private boolean isPeekAppInstalled() {
         return isPackageInstalled(PEEK_APPLICATION);
     }
@@ -145,14 +181,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             return false;
         }
     }
-
-    private final RotationPolicy.RotationPolicyListener mRotationPolicyListener =
-            new RotationPolicy.RotationPolicyListener() {
-        @Override
-        public void onChange() {
-            updateDisplayRotationPreferenceDescription();
-        }
-    };
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -200,13 +229,28 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mSunlightEnhancement = null;
         }
 
-        mNotificationPeek = (CheckBoxPreference) findPreference(KEY_PEEK);
-        mNotificationPeek.setPersistent(false);
-
+<<<<<<< HEAD
         mColorEnhancement = (CheckBoxPreference) findPreference(KEY_COLOR_ENHANCEMENT);
         if (!isColorEnhancementSupported()) {
             advancedPrefs.removePreference(mColorEnhancement);
             mColorEnhancement = null;
+=======
+        mNotificationPeek = (CheckBoxPreference) findPreference(KEY_PEEK);
+        mNotificationPeek.setPersistent(false);
+
+        mWakeUpOptions = (PreferenceCategory) prefSet.findPreference(KEY_WAKEUP_CATEGORY);
+        int counter = 0;
+        mVolumeWake = (CheckBoxPreference) findPreference(KEY_VOLUME_WAKE);
+        if (mVolumeWake != null) {
+            if (!getResources().getBoolean(R.bool.config_show_volumeRockerWake)) {
+                mWakeUpOptions.removePreference(mVolumeWake);
+                counter++;
+            } else {
+                mVolumeWake.setChecked(Settings.System.getInt(resolver,
+                        Settings.System.VOLUME_WAKE_SCREEN, 0) == 1);
+                mVolumeWake.setOnPreferenceChangeListener(this);
+            }
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
         }
 
         mTapToWake = (CheckBoxPreference) findPreference(KEY_TAP_TO_WAKE);
@@ -266,6 +310,11 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             advancedPrefs.removePreference(mScreenAnimationStylePreference);
         }
 
+        if (res.getIntArray(
+                com.android.internal.R.array.config_smartCoverWindowCoords).length != 4) {
+            getPreferenceScreen().removePreference(findPreference(KEY_SMART_COVER));
+        }
+
         boolean hasNotificationLed = res.getBoolean(
                 com.android.internal.R.bool.config_intrusiveNotificationLed);
         boolean hasBatteryLed = res.getBoolean(
@@ -276,6 +325,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mBatteryPulse = (PreferenceScreen) findPreference(KEY_BATTERY_LIGHT);
             mNotificationPulse = (PreferenceScreen) findPreference(KEY_NOTIFICATION_PULSE);
 
+<<<<<<< HEAD
             // Battery light is only for primary user
             if (UserHandle.myUserId() != UserHandle.USER_OWNER || !hasBatteryLed) {
                 lightPrefs.removePreference(mBatteryPulse);
@@ -337,6 +387,9 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         }
         summary.append(" " + getString(R.string.display_rotation_unit));
         mDisplayRotationPreference.setSummary(summary);
+=======
+        Utils.updatePreferenceToSpecificActivityFromMetaDataOrRemove(getActivity(),
+                getPreferenceScreen(), KEY_SCREEN_OFF_GESTURE_SETTINGS);
 
         if (mPackageStatusReceiver == null) {
             mPackageStatusReceiver = new PackageStatusReceiver();
@@ -347,6 +400,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mIntentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         }
         getActivity().registerReceiver(mPackageStatusReceiver, mIntentFilter);
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
     }
 
     private void updateTimeoutPreferenceDescription(long currentTimeout) {
@@ -449,6 +503,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                 Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION), true,
                 mAccelerometerRotationObserver);
 
+<<<<<<< HEAD
         if (mAdaptiveBacklight != null) {
             mAdaptiveBacklight.setChecked(AdaptiveBacklight.isEnabled());
         }
@@ -479,8 +534,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         mWakeWhenPluggedOrUnplugged.setChecked(Settings.Global.getInt(resolver,
                 Settings.Global.WAKE_WHEN_PLUGGED_OR_UNPLUGGED,
                 (wakeUpWhenPluggedOrUnpluggedConfig ? 1 : 0)) == 1);
+=======
+
+        updateDisplayRotationPreferenceDescription();
 
         getActivity().registerReceiver(mPackageStatusReceiver, mIntentFilter);
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
 
         updateState();
     }
@@ -515,9 +574,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private void updateState() {
         readFontSizePreference(mFontSizePref);
         updateScreenSaverSummary();
+<<<<<<< HEAD
         updateLightPulseSummary();
         updateBatteryPulseSummary();
+=======
         updatePeekCheckbox();
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
     }
 
     private void updateScreenSaverSummary() {
@@ -527,13 +589,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         }
     }
 
-    private void updatePeekCheckbox() {
-        boolean enabled = Settings.System.getInt(getContentResolver(),
-                Settings.System.PEEK_STATE, 0) == 1;
-        mNotificationPeek.setChecked(enabled && !isPeekAppInstalled());
-        mNotificationPeek.setEnabled(!isPeekAppInstalled());
-    }
-
+<<<<<<< HEAD
     private void updateLightPulseSummary() {
         if (mNotificationPulse != null) {
             if (Settings.System.getInt(getActivity().getContentResolver(),
@@ -542,6 +598,21 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             } else {
                 mNotificationPulse.setSummary(R.string.notification_light_disabled);
             }
+=======
+    private void updatePeekCheckbox() {
+        boolean enabled = Settings.System.getInt(getContentResolver(),
+                Settings.System.PEEK_STATE, 0) == 1;
+        mNotificationPeek.setChecked(enabled && !isPeekAppInstalled());
+        mNotificationPeek.setEnabled(!isPeekAppInstalled());
+    }
+
+    public void writeFontSizePreference(Object objValue) {
+        try {
+            mCurConfig.fontScale = Float.parseFloat(objValue.toString());
+            ActivityManagerNative.getDefault().updatePersistentConfiguration(mCurConfig);
+        } catch (RemoteException e) {
+            Log.w(TAG, "Unable to save font size");
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
         }
     }
 
@@ -598,14 +669,17 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                     Settings.Global.WAKE_WHEN_PLUGGED_OR_UNPLUGGED,
                     mWakeWhenPluggedOrUnplugged.isChecked() ? 1 : 0);
             return true;
+<<<<<<< HEAD
         } else if (preference == mTapToWake) {
             final SharedPreferences prefs =
                     PreferenceManager.getDefaultSharedPreferences(getActivity());
             prefs.edit().putBoolean(KEY_TAP_TO_WAKE, mTapToWake.isChecked()).commit();
             return TapToWake.setEnabled(mTapToWake.isChecked());
+=======
         } else if (preference == mNotificationPeek) {
             Settings.System.putInt(getContentResolver(), Settings.System.PEEK_STATE,
                     mNotificationPeek.isChecked() ? 1 : 0);
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
         }
         return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
@@ -665,6 +739,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         return false;
     }
 
+<<<<<<< HEAD
     /**
      * Restore the properties associated with this preference on boot
      * @param ctx A valid context
@@ -759,8 +834,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             // Hardware abstraction framework not installed
             return false;
         }
-    }
-
+=======
     public class PackageStatusReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -771,5 +845,6 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                 updatePeekCheckbox();
             }
         }
+>>>>>>> 8a0cf96... Mega-merge of ParanoidAndroid features
     }
 }

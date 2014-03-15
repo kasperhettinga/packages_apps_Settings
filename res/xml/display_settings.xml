@@ -71,6 +71,11 @@
                 android:title="@string/battery_light_title"
                 android:fragment="com.android.settings.notificationlight.BatteryLightSettings" />
 
+            <CheckBoxPreference
+                android:key="notification_peek"
+                android:title="@string/notification_peek_title"
+                android:summary="@string/notification_peek_summary" />
+
         </PreferenceCategory>
 
         <!-- DeviceParts Device Specific Display settings -->
