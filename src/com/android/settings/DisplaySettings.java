@@ -21,11 +21,17 @@ import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
 import android.app.ActivityManagerNative;
 import android.app.Dialog;
 import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
@@ -68,6 +74,9 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String KEY_WAKEUP_WHEN_PLUGGED_UNPLUGGED = "wakeup_when_plugged_unplugged";
     private static final String KEY_WAKEUP_CATEGORY = "category_wakeup_options";
     private static final String KEY_SCREEN_OFF_GESTURE_SETTINGS = "screen_off_gesture_settings";
+    private static final String KEY_PEEK = "notification_peek";
+
+    private static final String PEEK_APPLICATION = "com.jedga.peek";
 
     private static final int DLG_GLOBAL_CHANGE_WARNING = 1;
 
@@ -88,11 +97,15 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private ListPreference mListViewInterpolator;
     private CheckBoxPreference mWakeUpWhenPluggedOrUnplugged;
     private PreferenceCategory mWakeUpOptions;
+    private CheckBoxPreference mNotificationPeek;
 
     private final Configuration mCurConfig = new Configuration();
 
     private ListPreference mScreenTimeoutPreference;
     private Preference mScreenSaverPreference;
+
+    private PackageStatusReceiver mPackageStatusReceiver;
+    private IntentFilter mIntentFilter;
 
     private ContentObserver mAccelerometerRotationObserver =
             new ContentObserver(new Handler()) {
@@ -101,6 +114,20 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             updateDisplayRotationPreferenceDescription();
         }
     };
+
+    private boolean isPeekAppInstalled() {
+        return isPackageInstalled(PEEK_APPLICATION);
+    }
+
+    private boolean isPackageInstalled(String packagename) {
+        PackageManager pm = getActivity().getPackageManager();
+        try {
+            pm.getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (NameNotFoundException e) {
+            return false;
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -173,6 +200,9 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             }
         }
 
+        mNotificationPeek = (CheckBoxPreference) findPreference(KEY_PEEK);
+        mNotificationPeek.setPersistent(false);
+
         mWakeUpOptions = (PreferenceCategory) prefSet.findPreference(KEY_WAKEUP_CATEGORY);
         int counter = 0;
         mVolumeWake = (CheckBoxPreference) findPreference(KEY_VOLUME_WAKE);
@@ -240,6 +270,16 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 
         Utils.updatePreferenceToSpecificActivityFromMetaDataOrRemove(getActivity(),
                 getPreferenceScreen(), KEY_SCREEN_OFF_GESTURE_SETTINGS);
+
+        if (mPackageStatusReceiver == null) {
+            mPackageStatusReceiver = new PackageStatusReceiver();
+        }
+        if (mIntentFilter == null) {
+            mIntentFilter = new IntentFilter();
+            mIntentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            mIntentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        }
+        getActivity().registerReceiver(mPackageStatusReceiver, mIntentFilter);
     }
 
     private void updateTimeoutPreferenceDescription(long currentTimeout) {
@@ -347,7 +387,11 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                 Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION), true,
                 mAccelerometerRotationObserver);
 
+
         updateDisplayRotationPreferenceDescription();
+
+        getActivity().registerReceiver(mPackageStatusReceiver, mIntentFilter);
+
         updateState();
         updateLightPulseDescription();
         updateBatteryPulseDescription();
@@ -358,6 +402,8 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
         super.onPause();
 
         getContentResolver().unregisterContentObserver(mAccelerometerRotationObserver);
+
+        getActivity().unregisterReceiver(mPackageStatusReceiver);
     }
 
     @Override
@@ -377,6 +423,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private void updateState() {
         readFontSizePreference(mFontSizePref);
         updateScreenSaverSummary();
+        updatePeekCheckbox();
     }
 
     private void updateScreenSaverSummary() {
@@ -384,6 +431,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mScreenSaverPreference.setSummary(
                     DreamSettings.getSummaryTextWithDreamName(getActivity()));
         }
+    }
+
+    private void updatePeekCheckbox() {
+        boolean enabled = Settings.System.getInt(getContentResolver(),
+                Settings.System.PEEK_STATE, 0) == 1;
+        mNotificationPeek.setChecked(enabled && !isPeekAppInstalled());
+        mNotificationPeek.setEnabled(!isPeekAppInstalled());
     }
 
     public void writeFontSizePreference(Object objValue) {
@@ -468,6 +522,9 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             Settings.System.putInt(getContentResolver(), Settings.System.NOTIFICATION_LIGHT_PULSE,
                     value ? 1 : 0);
             return true;
+        } else if (preference == mNotificationPeek) {
+            Settings.System.putInt(getContentResolver(), Settings.System.PEEK_STATE,
+                    mNotificationPeek.isChecked() ? 1 : 0);
         }
         return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
@@ -537,5 +594,17 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             }
         }
         return false;
+    }
+
+    public class PackageStatusReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_PACKAGE_ADDED)) {
+                updatePeekCheckbox();
+            } else if(action.equals(Intent.ACTION_PACKAGE_REMOVED)) {
+                updatePeekCheckbox();
+            }
+        }
     }
 }
