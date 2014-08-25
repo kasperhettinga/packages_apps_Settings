@@ -121,6 +121,10 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
             "recent_panel_expanded_mode";
     private static final String RECENT_PANEL_BG_COLOR =
             "recent_panel_bg_color";
+    private static final String RECENT_CARD_BG_COLOR =
+            "recent_card_bg_color";
+    private static final String RECENT_CARD_TEXT_COLOR =
+            "recent_card_text_color";
 
     // Extras passed to sub-fragments.
     static final String EXTRA_PREFERENCE_KEY = "preference_key";
@@ -222,6 +226,8 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
     private ListPreference mRecentPanelScale;
     private ListPreference mRecentPanelExpandedMode;
     private ColorPickerPreference mRecentPanelBgColor;
+    private ColorPickerPreference mRecentCardBgColor;
+    private ColorPickerPreference mRecentCardTextColor;
 
     private static final int MENU_RESET = Menu.FIRST;
     private static final int DEFAULT_BACKGROUND_COLOR = 0x00ffffff;
@@ -293,6 +299,32 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
             int intHex = ColorPickerPreference.convertToColorInt(hex);
             Settings.System.putInt(getContentResolver(),
                     Settings.System.RECENT_PANEL_BG_COLOR,
+                    intHex);
+            return true;
+        } else if (preference == mRecentCardBgColor) {
+            String hex = ColorPickerPreference.convertToARGB(
+                    Integer.valueOf(String.valueOf(newValue)));
+            if (hex.equals("#00ffffff")) {
+                preference.setSummary(R.string.trds_default_color);
+            } else {
+                preference.setSummary(hex);
+            }
+            int intHex = ColorPickerPreference.convertToColorInt(hex);
+            Settings.System.putInt(getContentResolver(),
+                    Settings.System.RECENT_CARD_BG_COLOR,
+                    intHex);
+            return true;
+        } else if (preference == mRecentCardTextColor) {
+            String hex = ColorPickerPreference.convertToARGB(
+                    Integer.valueOf(String.valueOf(newValue)));
+            if (hex.equals("#00ffffff")) {
+                preference.setSummary(R.string.trds_default_color);
+            } else {
+                preference.setSummary(hex);
+            }
+            int intHex = ColorPickerPreference.convertToColorInt(hex);
+            Settings.System.putInt(getContentResolver(),
+                    Settings.System.RECENT_CARD_TEXT_COLOR,
                     intHex);
             return true;
         } else if (preference == mRecentPanelLeftyMode) {
@@ -425,11 +457,41 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
                 Settings.System.RECENT_PANEL_BG_COLOR, 0x00ffffff);
         String hexColor = String.format("#%08x", (0x00ffffff & intColor));
         if (hexColor.equals("#00ffffff")) {
-            mRecentPanelBgColor.setSummary(R.string.trds_default_color);
+            mRecentPanelBgColor.setSummary("TRDS default");
         } else {
             mRecentPanelBgColor.setSummary(hexColor);
         }
         mRecentPanelBgColor.setNewPreviewColor(intColor);
+
+        // Recent card background color
+        mRecentCardBgColor =
+                (ColorPickerPreference) findPreference(RECENT_CARD_BG_COLOR);
+        mRecentCardBgColor.setOnPreferenceChangeListener(this);
+        final int intColorCard = Settings.System.getInt(getContentResolver(),
+                Settings.System.RECENT_CARD_BG_COLOR, 0x00ffffff);
+        String hexColorCard = String.format("#%08x", (0x00ffffff & intColorCard));
+        if (hexColorCard.equals("#00ffffff")) {
+            mRecentCardBgColor.setSummary("TRDS default");
+        } else {
+            mRecentCardBgColor.setSummary(hexColorCard);
+        }
+        mRecentCardBgColor.setNewPreviewColor(intColorCard);
+
+        // Recent card text color
+        mRecentCardTextColor =
+                (ColorPickerPreference) findPreference(RECENT_CARD_TEXT_COLOR);
+        mRecentCardTextColor.setOnPreferenceChangeListener(this);
+        final int intColorText = Settings.System.getInt(getContentResolver(),
+                Settings.System.RECENT_CARD_TEXT_COLOR, 0x00ffffff);
+        String hexColorText = String.format("#%08x", (0x00ffffff & intColorText));
+        if (hexColorText.equals("#00ffffff")) {
+            mRecentCardTextColor.setSummary("TRDS default");
+        } else {
+            mRecentCardTextColor.setSummary(hexColorText);
+        }
+        mRecentCardTextColor.setNewPreviewColor(intColorText);
+
+        // Enable options menu for color reset
         setHasOptionsMenu(true);
 
         // Long press timeout.
@@ -518,7 +580,15 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
         Settings.System.putInt(getContentResolver(),
                 Settings.System.RECENT_PANEL_BG_COLOR, DEFAULT_BACKGROUND_COLOR);
         mRecentPanelBgColor.setNewPreviewColor(DEFAULT_BACKGROUND_COLOR);
-        mRecentPanelBgColor.setSummary(R.string.trds_default_color);
+        mRecentPanelBgColor.setSummary("TRDS default");
+        Settings.System.putInt(getContentResolver(),
+                Settings.System.RECENT_CARD_BG_COLOR, DEFAULT_BACKGROUND_COLOR);
+        mRecentCardBgColor.setNewPreviewColor(DEFAULT_BACKGROUND_COLOR);
+        mRecentCardBgColor.setSummary("TRDS default");
+        Settings.System.putInt(getContentResolver(),
+                Settings.System.RECENT_CARD_TEXT_COLOR, DEFAULT_BACKGROUND_COLOR);
+        mRecentCardTextColor.setNewPreviewColor(DEFAULT_BACKGROUND_COLOR);
+        mRecentCardTextColor.setSummary("TRDS default");
     }
 
     private void updateAllPreferences() {
