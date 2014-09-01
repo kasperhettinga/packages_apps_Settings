@@ -112,6 +112,7 @@ public class InstalledAppDetails extends Fragment
     private AppWidgetManager mAppWidgetManager;
     private DevicePolicyManager mDpm;
     private ISms mSmsManager;
+    private INotificationManager mNotificationManager;
     private ApplicationsState mState;
     private ApplicationsState.Session mSession;
     private ApplicationsState.AppEntry mAppEntry;
@@ -145,10 +146,10 @@ public class InstalledAppDetails extends Fragment
     private Button mForceStopButton;
     private Button mClearDataButton;
     private Button mMoveAppButton;
-    private Button mBlacklistButton;
     private CompoundButton mNotificationSwitch;
     private CompoundButton mHeadsUpSwitch;
     private Button mAppOpsButton;
+    private Button mBlacklistButton;
 
     private PackageMoveObserver mPackageMoveObserver;
     private AppOpsManager mAppOps;
@@ -255,6 +256,7 @@ public class InstalledAppDetails extends Fragment
     }
     
     private void initDataButtons() {
+        boolean enabled = false;
         // If the app doesn't have its own space management UI
         // And it's a system app that doesn't allow clearing user data or is an active admin
         // Then disable the Clear Data button.
@@ -264,7 +266,7 @@ public class InstalledAppDetails extends Fragment
                         == ApplicationInfo.FLAG_SYSTEM
                         || mDpm.packageHasActiveAdmins(mPackageInfo.packageName))) {
             mClearDataButton.setText(R.string.clear_user_data_text);
-            mClearDataButton.setEnabled(false);
+            enabled = false;
             mCanClearData = false;
         } else {
             if (mAppEntry.info.manageSpaceActivityName != null) {
@@ -430,11 +432,9 @@ public class InstalledAppDetails extends Fragment
     }
 
     private void initNotificationButton() {
-        INotificationManager nm = INotificationManager.Stub.asInterface(
-                ServiceManager.getService(Context.NOTIFICATION_SERVICE));
         boolean enabled = true; // default on
         try {
-            enabled = nm.areNotificationsEnabledForPackage(mAppEntry.info.packageName,
+            enabled = mNotificationManager.areNotificationsEnabledForPackage(mAppEntry.info.packageName,
                     mAppEntry.info.uid);
         } catch (android.os.RemoteException ex) {
             // this does not bode well
@@ -486,6 +486,8 @@ public class InstalledAppDetails extends Fragment
         mAppWidgetManager = AppWidgetManager.getInstance(getActivity());
         mDpm = (DevicePolicyManager)getActivity().getSystemService(Context.DEVICE_POLICY_SERVICE);
         mSmsManager = ISms.Stub.asInterface(ServiceManager.getService("isms"));
+        mNotificationManager = INotificationManager.Stub.asInterface(
+                ServiceManager.getService(Context.NOTIFICATION_SERVICE));
 
         mCanBeOnSdCardChecker = new CanBeOnSdCardChecker();
 
@@ -1430,12 +1432,9 @@ public class InstalledAppDetails extends Fragment
     }
 
     private void setNotificationsEnabled(boolean enabled) {
-        String packageName = mAppEntry.info.packageName;
-        INotificationManager nm = INotificationManager.Stub.asInterface(
-                ServiceManager.getService(Context.NOTIFICATION_SERVICE));
         try {
             final boolean enable = mNotificationSwitch.isChecked();
-            nm.setNotificationsEnabledForPackage(packageName, mAppEntry.info.uid, enabled);
+            mNotificationManager.setNotificationsEnabledForPackage(mAppEntry.info.packageName, mAppEntry.info.uid, enabled);
             if (mHeadsUpSwitch != null) {
                 mHeadsUpSwitch.setEnabled(enable);
             }
@@ -1457,6 +1456,10 @@ public class InstalledAppDetails extends Fragment
         }
     }
 
+    private boolean getPeekState() {
+        return mPeekBlacklist.isChecked();
+    }
+
     private void setFloatingModeState(boolean state) {
         if(getFloatingModeState() != state)
             mFloatingBlacklist.setChecked(state); // needed when Floating state is set manually
@@ -1467,6 +1470,10 @@ public class InstalledAppDetails extends Fragment
         }
     }
 
+    private boolean getFloatingModeState() {
+        return mFloatingBlacklist.isChecked();
+    }
+
     private void setHoverState(boolean state) {
         if(getHoverState() != state)
             mHoverBlacklist.setChecked(state); // needed when Hover state is set manually
@@ -1475,14 +1482,6 @@ public class InstalledAppDetails extends Fragment
         } catch (android.os.RemoteException ex) {
             mHoverBlacklist.setChecked(!state); // revert
         }
-    }
-
-    private boolean getPeekState() {
-        return mPeekBlacklist.isChecked();
-    }
-
-    private boolean getFloatingModeState() {
-        return mFloatingBlacklist.isChecked();
     }
 
     private boolean getHoverState() {
@@ -1593,15 +1592,14 @@ public class InstalledAppDetails extends Fragment
             } else {
                 setNotificationsEnabled(true);
             }
-        } else if (buttonView == mHeadsUpSwitch) {
-            mPm.setHeadsUpSetting(packageName, isChecked);
         } else if (buttonView == mPeekBlacklist) {
             setPeekState(isChecked);
         } else if (buttonView == mFloatingBlacklist) {
             setFloatingModeState(isChecked);
         } else if (buttonView == mHoverBlacklist) {
             setHoverState(isChecked);
+        } else if (buttonView == mHeadsUpSwitch) {
+            mPm.setHeadsUpSetting(packageName, isChecked);
         }
     }
 }
-
